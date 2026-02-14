@@ -15,10 +15,12 @@ import Settings from "@/pages/Settings";
 
 function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-3">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-muted-foreground">Loading…</p>
+    <div className="min-h-screen flex items-center justify-center bg-background dot-grid">
+      <div className="flex flex-col items-center gap-4 animate-scale-in">
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30 animate-glow-pulse">
+          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+        </div>
+        <p className="text-sm text-muted-foreground animate-fade-in delay-2">Loading GOSAI CRM…</p>
       </div>
     </div>
   );

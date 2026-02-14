@@ -93,9 +93,9 @@ export default function Contacts() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-slide-down">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Contacts</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Contacts</h1>
           <p className="text-sm text-muted-foreground mt-1">{contacts.length} contact{contacts.length !== 1 ? "s" : ""}</p>
         </div>
         <Button onClick={() => setShowModal(true)}><Plus size={16} />Add Contact</Button>
@@ -114,7 +114,7 @@ export default function Contacts() {
         <EmptyState icon={<Users size={48} />} title="No contacts yet" description="Add your first contact to start building your pipeline."
           action={<Button onClick={() => setShowModal(true)}><Plus size={16} />Add Contact</Button>} />
       ) : (
-        <div className="rounded-xl border border-border overflow-hidden">
+        <div className="rounded-xl border border-border overflow-hidden animate-slide-up delay-2">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border bg-muted/30">
@@ -127,7 +127,7 @@ export default function Contacts() {
             </thead>
             <tbody>
               {contacts.map((c) => (
-                <tr key={c.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
+                <tr key={c.id} className="border-b border-border/50 row-glow transition-all duration-200">
                   <td className="px-4 py-3">
                     <Link to={`/contacts/${c.id}`} className="text-sm font-medium hover:text-primary transition-colors flex items-center gap-1.5">
                       {c.first_name} {c.last_name} <ExternalLink size={12} className="opacity-0 group-hover:opacity-100" />

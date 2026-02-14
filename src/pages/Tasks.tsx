@@ -72,9 +72,9 @@ export default function Tasks() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-slide-down">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Tasks</h1>
+          <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
           <p className="text-sm text-muted-foreground mt-1">{tasks.length} task{tasks.length !== 1 ? "s" : ""}</p>
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function Tasks() {
       ) : (
         <div className="space-y-1">
           {tasks.map((task) => (
-            <div key={task.id} className="group flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted/20 transition-colors">
+            <div key={task.id} className="group flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-muted/20 transition-all duration-200 animate-slide-up">
               <button onClick={() => { if (task.status !== "completed") completeMutation.mutate(task.id); }}
                 className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors cursor-pointer ${
                   task.status === "completed" ? "bg-success border-success" : "border-border hover:border-primary"}`}>

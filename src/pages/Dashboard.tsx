@@ -3,7 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { GosaiContact, GosaiDeal, GosaiActivity, GosaiTask } from "@/lib/types";
 import { Card, CardTitle, CardValue } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Users, Handshake, DollarSign, TrendingUp, Activity, CheckSquare } from "lucide-react";
+import { Users, Handshake, DollarSign, TrendingUp, Activity, CheckSquare, Sparkles } from "lucide-react";
 
 export default function Dashboard() {
   const { data: contacts = [] } = useQuery({
@@ -47,61 +47,61 @@ export default function Dashboard() {
   const totalPipelineValue = openDeals.reduce((sum, d) => sum + (d.value ?? 0), 0);
   const wonValue = deals.filter((d) => d.stage === "Closed Won").reduce((sum, d) => sum + (d.value ?? 0), 0);
 
+  const statCards = [
+    { title: "Total Contacts", value: contacts.length, format: (v: number) => v.toString(), icon: Users, color: "primary", delay: 0 },
+    { title: "Open Deals", value: openDeals.length, format: (v: number) => v.toString(), icon: Handshake, color: "warning", delay: 1 },
+    { title: "Pipeline Value", value: totalPipelineValue, format: (v: number) => `$${v.toLocaleString()}`, icon: DollarSign, color: "accent", delay: 2 },
+    { title: "Won Revenue", value: wonValue, format: (v: number) => `$${v.toLocaleString()}`, icon: TrendingUp, color: "success", delay: 3 },
+  ] as const;
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">Pipeline overview and recent activity</p>
+      {/* Header with greeting */}
+      <div className="animate-slide-down">
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles size={20} className="text-primary animate-float" />
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+        </div>
+        <p className="text-sm text-muted-foreground">Pipeline overview and recent activity</p>
       </div>
 
+      {/* Stat cards with staggered entrance */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle>Total Contacts</CardTitle>
-              <CardValue className="mt-2">{contacts.length}</CardValue>
-            </div>
-            <div className="p-2 rounded-lg bg-primary/10"><Users size={18} className="text-primary" /></div>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle>Open Deals</CardTitle>
-              <CardValue className="mt-2">{openDeals.length}</CardValue>
-            </div>
-            <div className="p-2 rounded-lg bg-warning/10"><Handshake size={18} className="text-warning" /></div>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle>Pipeline Value</CardTitle>
-              <CardValue className="mt-2">${totalPipelineValue.toLocaleString()}</CardValue>
-            </div>
-            <div className="p-2 rounded-lg bg-accent/10"><DollarSign size={18} className="text-accent" /></div>
-          </div>
-        </Card>
-        <Card>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle>Won Revenue</CardTitle>
-              <CardValue className="mt-2 text-success">${wonValue.toLocaleString()}</CardValue>
-            </div>
-            <div className="p-2 rounded-lg bg-success/10"><TrendingUp size={18} className="text-success" /></div>
-          </div>
-        </Card>
+        {statCards.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={stat.title} className={`animate-slide-up delay-${stat.delay} group`}>
+              <div className="flex items-start justify-between">
+                <div>
+                  <CardTitle>{stat.title}</CardTitle>
+                  <CardValue className={`mt-2 ${stat.color === "success" ? "text-success" : ""}`}>
+                    {stat.format(stat.value)}
+                  </CardValue>
+                </div>
+                <div className={`p-2.5 rounded-xl bg-${stat.color}/10 border border-${stat.color}/10 transition-all duration-300 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-${stat.color}/20`}>
+                  <Icon size={20} className={`text-${stat.color}`} />
+                </div>
+              </div>
+              {/* Subtle gradient accent line */}
+              <div className={`mt-4 h-0.5 rounded-full bg-gradient-to-r from-${stat.color}/40 via-${stat.color}/10 to-transparent`} />
+            </Card>
+          );
+        })}
       </div>
 
+      {/* Activity + Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
+        <Card className="animate-slide-up delay-4">
           <div className="flex items-center gap-2 mb-5">
-            <Activity size={16} className="text-muted-foreground" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Recent Activity</h3>
+            <div className="p-1.5 rounded-lg bg-primary/10">
+              <Activity size={14} className="text-primary" />
+            </div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Recent Activity</h3>
           </div>
-          <div className="space-y-3">
-            {activities.map((item) => (
-              <div key={item.id} className="flex gap-3 py-1.5 border-b border-border/50 last:border-0">
+          <div className="space-y-1">
+            {activities.map((item, i) => (
+              <div key={item.id} className={`flex gap-3 py-2.5 px-2 rounded-lg hover:bg-muted/20 transition-all duration-200 animate-slide-in-right delay-${Math.min(i, 10)}`}>
+                <div className="w-1 h-1 rounded-full bg-primary/40 mt-2 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm truncate">{item.description || item.type}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">
@@ -111,18 +111,30 @@ export default function Dashboard() {
                 <Badge variant="default" className="self-start text-[10px]">{item.linked_type}</Badge>
               </div>
             ))}
-            {activities.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No activity yet</p>}
+            {activities.length === 0 && (
+              <div className="text-center py-8">
+                <Activity size={32} className="text-muted-foreground/20 mx-auto mb-2 animate-float" />
+                <p className="text-sm text-muted-foreground">No activity yet</p>
+              </div>
+            )}
           </div>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up delay-5">
           <div className="flex items-center gap-2 mb-5">
-            <CheckSquare size={16} className="text-muted-foreground" />
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Upcoming Tasks</h3>
+            <div className="p-1.5 rounded-lg bg-accent/10">
+              <CheckSquare size={14} className="text-accent" />
+            </div>
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Upcoming Tasks</h3>
           </div>
-          <div className="space-y-3">
-            {tasks.map((task) => (
-              <div key={task.id} className="flex items-center gap-3 py-1.5 border-b border-border/50 last:border-0">
+          <div className="space-y-1">
+            {tasks.map((task, i) => (
+              <div key={task.id} className={`flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-muted/20 transition-all duration-200 animate-slide-in-right delay-${Math.min(i, 10)}`}>
+                <div className={`w-2 h-2 rounded-full shrink-0 ${
+                  task.priority === "urgent" ? "bg-destructive shadow-sm shadow-destructive/50" :
+                  task.priority === "high" ? "bg-warning shadow-sm shadow-warning/50" :
+                  "bg-muted-foreground/30"
+                }`} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm truncate">{task.title}</p>
                   {task.due_date && (
@@ -136,7 +148,12 @@ export default function Dashboard() {
                 </Badge>
               </div>
             ))}
-            {tasks.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No tasks yet</p>}
+            {tasks.length === 0 && (
+              <div className="text-center py-8">
+                <CheckSquare size={32} className="text-muted-foreground/20 mx-auto mb-2 animate-float" />
+                <p className="text-sm text-muted-foreground">No tasks yet</p>
+              </div>
+            )}
           </div>
         </Card>
       </div>
