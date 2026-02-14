@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Users, Building2, Handshake,
-  FolderKanban, CheckSquare, Settings, Zap,
+  FolderKanban, CheckSquare, Settings, Zap, LogOut,
 } from "lucide-react";
+import { useAuth } from "@/lib/auth";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -15,6 +16,7 @@ const navItems = [
 
 export function Sidebar() {
   const { pathname } = useLocation();
+  const { user, signOut } = useAuth();
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -61,6 +63,25 @@ export function Sidebar() {
           Settings
         </Link>
       </nav>
+
+      {/* User + Sign Out */}
+      <div className="p-3 border-t border-border">
+        <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
+          <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary shrink-0">
+            {user?.email?.charAt(0).toUpperCase() ?? "?"}
+          </div>
+          <span className="text-xs text-muted-foreground truncate">
+            {user?.email}
+          </span>
+        </div>
+        <button
+          onClick={signOut}
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all cursor-pointer"
+        >
+          <LogOut size={18} />
+          Sign Out
+        </button>
+      </div>
     </aside>
   );
 }
