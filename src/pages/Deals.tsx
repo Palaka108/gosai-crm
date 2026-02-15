@@ -18,6 +18,10 @@ export default function Deals() {
   const [showModal, setShowModal] = useState(false);
   const [filterStage, setFilterStage] = useState<string>("all");
   const [form, setForm] = useState({ title: "", value: "", stage: "New Lead", contact_id: "", company_id: "" });
+  const [showNewContact, setShowNewContact] = useState(false);
+  const [showNewCompany, setShowNewCompany] = useState(false);
+  const [newContact, setNewContact] = useState({ first_name: "", last_name: "", email: "" });
+  const [newCompany, setNewCompany] = useState({ name: "" });
 
   const { data: pipeline } = useQuery({
     queryKey: ["pipeline-default"],
@@ -55,6 +59,51 @@ export default function Deals() {
     },
   });
 
+  const createContactMutation = useMutation({
+    mutationFn: async () => {
+      if (!newContact.first_name.trim()) throw new Error("First name is required");
+      const { data, error } = await supabase.from("gosai_contacts").insert({
+        user_id: USER_ID,
+        first_name: newContact.first_name.trim(),
+        last_name: newContact.last_name.trim() || null,
+        email: newContact.email.trim() || null,
+        status: "lead",
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["contacts-list"] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      setForm({ ...form, contact_id: data.id });
+      setNewContact({ first_name: "", last_name: "", email: "" });
+      setShowNewContact(false);
+      toast.success("Contact created");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const createCompanyMutation = useMutation({
+    mutationFn: async () => {
+      if (!newCompany.name.trim()) throw new Error("Company name is required");
+      const { data, error } = await supabase.from("gosai_companies").insert({
+        user_id: USER_ID,
+        name: newCompany.name.trim(),
+      }).select().single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["companies-list"] });
+      queryClient.invalidateQueries({ queryKey: ["companies"] });
+      setForm({ ...form, company_id: data.id });
+      setNewCompany({ name: "" });
+      setShowNewCompany(false);
+      toast.success("Company created");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const createMutation = useMutation({
     mutationFn: async () => {
       const stageObj = pipeline?.stages?.find((s) => s.name === form.stage);
@@ -82,6 +131,8 @@ export default function Deals() {
       queryClient.invalidateQueries({ queryKey: ["deals"] });
       setShowModal(false);
       setForm({ title: "", value: "", stage: "New Lead", contact_id: "", company_id: "" });
+      setShowNewContact(false);
+      setShowNewCompany(false);
       toast.success("Deal created");
     },
     onError: (e) => toast.error(e.message),
@@ -194,19 +245,70 @@ export default function Deals() {
         </div>
       )}
 
-      <Modal open={showModal} onClose={() => setShowModal(false)} title="New Deal">
+      <Modal open={showModal} onClose={() => { setShowModal(false); setShowNewContact(false); setShowNewCompany(false); }} title="New Deal">
         <form onSubmit={(e) => { e.preventDefault(); createMutation.mutate(); }} className="space-y-4">
           <Input label="Deal Title" required value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="e.g. AI Automation Suite" />
           <Input label="Value ($)" type="number" step="0.01" value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })} placeholder="0" />
           <Select label="Stage" value={form.stage} onChange={(e) => setForm({ ...form, stage: e.target.value })}
             options={stages.map((s) => ({ value: s, label: s }))} />
-          <Select label="Contact" value={form.contact_id} onChange={(e) => setForm({ ...form, contact_id: e.target.value })}
-            options={[{ value: "", label: "No contact" }, ...contacts.map((c) => ({ value: c.id, label: `${c.first_name} ${c.last_name}` }))]} />
-          <Select label="Company" value={form.company_id} onChange={(e) => setForm({ ...form, company_id: e.target.value })}
-            options={[{ value: "", label: "No company" }, ...companies.map((c) => ({ value: c.id, label: c.name }))]} />
+
+          {/* Contact — select existing or create new inline */}
+          <div className="space-y-2">
+            <Select label="Contact" value={form.contact_id} onChange={(e) => setForm({ ...form, contact_id: e.target.value })}
+              options={[{ value: "", label: "No contact" }, ...contacts.map((c) => ({ value: c.id, label: `${c.first_name} ${c.last_name}` }))]} />
+            {!showNewContact ? (
+              <button type="button" onClick={() => setShowNewContact(true)}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors cursor-pointer">
+                <Plus size={12} /> New Contact
+              </button>
+            ) : (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                <p className="text-xs font-medium text-primary uppercase tracking-wider">Quick-Add Contact</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="First name *" value={newContact.first_name} onChange={(e) => setNewContact({ ...newContact, first_name: e.target.value })} />
+                  <Input placeholder="Last name" value={newContact.last_name} onChange={(e) => setNewContact({ ...newContact, last_name: e.target.value })} />
+                </div>
+                <Input placeholder="Email (optional)" type="email" value={newContact.email} onChange={(e) => setNewContact({ ...newContact, email: e.target.value })} />
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" onClick={() => createContactMutation.mutate()} disabled={createContactMutation.isPending || !newContact.first_name.trim()}>
+                    {createContactMutation.isPending ? "Adding..." : "Add Contact"}
+                  </Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => { setShowNewContact(false); setNewContact({ first_name: "", last_name: "", email: "" }); }}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Company — select existing or create new inline */}
+          <div className="space-y-2">
+            <Select label="Company" value={form.company_id} onChange={(e) => setForm({ ...form, company_id: e.target.value })}
+              options={[{ value: "", label: "No company" }, ...companies.map((c) => ({ value: c.id, label: c.name }))]} />
+            {!showNewCompany ? (
+              <button type="button" onClick={() => setShowNewCompany(true)}
+                className="flex items-center gap-1 text-xs text-primary hover:text-primary/80 transition-colors cursor-pointer">
+                <Plus size={12} /> New Company
+              </button>
+            ) : (
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+                <p className="text-xs font-medium text-primary uppercase tracking-wider">Quick-Add Company</p>
+                <Input placeholder="Company name *" value={newCompany.name} onChange={(e) => setNewCompany({ ...newCompany, name: e.target.value })} />
+                <div className="flex gap-2">
+                  <Button type="button" size="sm" onClick={() => createCompanyMutation.mutate()} disabled={createCompanyMutation.isPending || !newCompany.name.trim()}>
+                    {createCompanyMutation.isPending ? "Adding..." : "Add Company"}
+                  </Button>
+                  <Button type="button" variant="secondary" size="sm" onClick={() => { setShowNewCompany(false); setNewCompany({ name: "" }); }}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="flex justify-end gap-3 pt-2">
-            <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
-            <Button type="submit" disabled={createMutation.isPending}>{createMutation.isPending ? "Creating..." : "Create Deal"}</Button>
+            <Button type="button" variant="secondary" onClick={() => { setShowModal(false); setShowNewContact(false); setShowNewCompany(false); }}>Cancel</Button>
+            <Button type="submit" disabled={createMutation.isPending}>{createMutation.isPending ? "Create Deal" : "Create Deal"}</Button>
           </div>
         </form>
       </Modal>
