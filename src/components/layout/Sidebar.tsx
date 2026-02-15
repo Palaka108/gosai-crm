@@ -1,17 +1,18 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, Users, Building2, Handshake,
-  FolderKanban, CheckSquare, Settings, Zap, LogOut,
+  LayoutDashboard, UserPlus, Building2, Users, Target,
+  Activity, Upload, Settings, Zap, LogOut,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/leads", label: "Leads", icon: UserPlus },
+  { href: "/accounts", label: "Accounts", icon: Building2 },
   { href: "/contacts", label: "Contacts", icon: Users },
-  { href: "/companies", label: "Companies", icon: Building2 },
-  { href: "/deals", label: "Deals", icon: Handshake },
-  { href: "/projects", label: "Projects", icon: FolderKanban },
-  { href: "/tasks", label: "Tasks", icon: CheckSquare },
+  { href: "/opportunities", label: "Opportunities", icon: Target },
+  { href: "/activities", label: "Activities", icon: Activity },
+  { href: "/import", label: "Apollo Import", icon: Upload },
 ];
 
 export function Sidebar() {
@@ -26,7 +27,7 @@ export function Sidebar() {
       {/* Logo */}
       <div className="p-5 border-b border-border/60">
         <Link to="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-sm shadow-primary/20">
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-sm shadow-primary/20">
             <Zap size={16} className="text-white" />
           </div>
           <div>
@@ -36,7 +37,7 @@ export function Sidebar() {
         </Link>
       </div>
 
-      <nav className="flex-1 p-3 space-y-0.5">
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
         {navItems.map((item) => (
           <Link
             key={item.href}

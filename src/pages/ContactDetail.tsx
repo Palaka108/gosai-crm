@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { GosaiContact, GosaiCompany, GosaiActivity, ContactStatus } from "@/lib/types";
+import { CrmContact, CrmAccount, CrmActivity, CrmOpportunity, ContactStatus } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
 import { NotesSection } from "@/components/shared/NotesSection";
-import { ArrowLeft, Mail, Phone, Building2, User, Pencil } from "lucide-react";
+import { ArrowLeft, Mail, Phone, Building2, User, Pencil, Linkedin, Target, DollarSign } from "lucide-react";
 
 const USER_ID = "47f2407b-67b9-4aa1-9a58-50bc0d461059";
 
@@ -31,14 +31,15 @@ export default function ContactDetail() {
     title: "",
     source: "",
     status: "lead" as ContactStatus,
-    company_id: "",
+    account_id: "",
+    linkedin_url: "",
   });
 
   const { data: contact, isLoading } = useQuery({
     queryKey: ["contact", id],
     queryFn: async () => {
-      const { data } = await supabase.from("gosai_contacts").select("*, gosai_companies(id, name)").eq("id", id!).single();
-      return data as GosaiContact;
+      const { data } = await supabase.from("crm_contacts").select("*, crm_accounts(id, name)").eq("id", id!).single();
+      return data as CrmContact;
     },
     enabled: !!id,
   });
@@ -46,18 +47,27 @@ export default function ContactDetail() {
   const { data: activities = [] } = useQuery({
     queryKey: ["contact-activities", id],
     queryFn: async () => {
-      const { data } = await supabase.from("gosai_activities").select("*").eq("linked_type", "contact").eq("linked_id", id!).order("created_at", { ascending: false });
-      return (data ?? []) as GosaiActivity[];
+      const { data } = await supabase.from("crm_activities").select("*").eq("linked_type", "contact").eq("linked_id", id!).order("created_at", { ascending: false });
+      return (data ?? []) as CrmActivity[];
     },
     enabled: !!id,
   });
 
-  const { data: companies = [] } = useQuery({
-    queryKey: ["companies-list"],
+  const { data: accounts = [] } = useQuery({
+    queryKey: ["accounts-list"],
     queryFn: async () => {
-      const { data } = await supabase.from("gosai_companies").select("id, name").order("name");
-      return (data ?? []) as GosaiCompany[];
+      const { data } = await supabase.from("crm_accounts").select("id, name").order("name");
+      return (data ?? []) as CrmAccount[];
     },
+  });
+
+  const { data: opportunities = [] } = useQuery({
+    queryKey: ["contact-opportunities", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("crm_opportunities").select("*").eq("contact_id", id!).order("created_at", { ascending: false });
+      return (data ?? []) as CrmOpportunity[];
+    },
+    enabled: !!id,
   });
 
   const openEditModal = () => {
@@ -70,7 +80,8 @@ export default function ContactDetail() {
       title: contact.title ?? "",
       source: contact.source ?? "",
       status: contact.status,
-      company_id: contact.company_id ?? "",
+      account_id: contact.account_id ?? "",
+      linkedin_url: contact.linkedin_url ?? "",
     });
     setShowEdit(true);
   };
@@ -85,10 +96,11 @@ export default function ContactDetail() {
         title: form.title || null,
         source: form.source || null,
         status: form.status,
-        company_id: form.company_id || null,
+        account_id: form.account_id || null,
+        linkedin_url: form.linkedin_url || null,
         updated_at: new Date().toISOString(),
       };
-      const { error } = await supabase.from("gosai_contacts").update(updates).eq("id", id!);
+      const { error } = await supabase.from("crm_contacts").update(updates).eq("id", id!);
       if (error) throw error;
 
       const changes: string[] = [];
@@ -97,7 +109,7 @@ export default function ContactDetail() {
       if (contact?.status !== form.status) changes.push(`status from ${contact?.status} to ${form.status}`);
 
       if (changes.length > 0) {
-        await supabase.from("gosai_activities").insert({
+        await supabase.from("crm_activities").insert({
           user_id: USER_ID,
           type: "updated",
           description: `Updated contact: ${changes.join(", ")}`,
@@ -172,12 +184,32 @@ export default function ContactDetail() {
             <div className="space-y-3">
               {contact.email && <div className="flex items-center gap-2 text-sm"><Mail size={14} className="text-muted-foreground" />{contact.email}</div>}
               {contact.phone && <div className="flex items-center gap-2 text-sm"><Phone size={14} className="text-muted-foreground" />{contact.phone}</div>}
-              {contact.gosai_companies && (
-                <Link to={`/companies/${contact.gosai_companies.id}`} className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
-                  <Building2 size={14} className="text-muted-foreground" />{contact.gosai_companies.name}
+              {contact.crm_accounts && (
+                <Link to={`/accounts/${contact.crm_accounts.id}`} className="flex items-center gap-2 text-sm hover:text-primary transition-colors">
+                  <Building2 size={14} className="text-muted-foreground" />{contact.crm_accounts.name}
                 </Link>
               )}
+              {contact.linkedin_url && (
+                <a href={contact.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline">
+                  <Linkedin size={14} />LinkedIn
+                </a>
+              )}
               {contact.source && <div className="flex items-center gap-2 text-sm"><User size={14} className="text-muted-foreground" />Source: {contact.source}</div>}
+            </div>
+          </Card>
+
+          <Card>
+            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-4">
+              <Target size={14} className="inline mr-1" />Opportunities ({opportunities.length})
+            </h3>
+            <div className="space-y-2">
+              {opportunities.map((o) => (
+                <Link key={o.id} to={`/opportunities/${o.id}`} className="flex justify-between text-sm hover:text-primary transition-colors">
+                  <span className="truncate">{o.name}</span>
+                  <span className="text-muted-foreground flex items-center gap-0.5 shrink-0"><DollarSign size={10} />{(o.amount ?? 0).toLocaleString()}</span>
+                </Link>
+              ))}
+              {opportunities.length === 0 && <p className="text-xs text-muted-foreground">No opportunities linked</p>}
             </div>
           </Card>
         </div>
@@ -192,8 +224,9 @@ export default function ContactDetail() {
           <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
           <Input label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
           <Input label="Job Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-          <Select label="Company" value={form.company_id} onChange={(e) => setForm({ ...form, company_id: e.target.value })}
-            options={[{ value: "", label: "No company" }, ...companies.map((c) => ({ value: c.id, label: c.name }))]} />
+          <Input label="LinkedIn URL" value={form.linkedin_url} onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })} placeholder="https://linkedin.com/in/..." />
+          <Select label="Account" value={form.account_id} onChange={(e) => setForm({ ...form, account_id: e.target.value })}
+            options={[{ value: "", label: "No account" }, ...accounts.map((a) => ({ value: a.id, label: a.name }))]} />
           <Select label="Source" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}
             options={[{ value: "", label: "Select source" }, { value: "referral", label: "Referral" }, { value: "website", label: "Website" }, { value: "cold", label: "Cold Outreach" }, { value: "event", label: "Event" }, { value: "linkedin", label: "LinkedIn" }]} />
           <Select label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as ContactStatus })}

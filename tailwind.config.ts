@@ -5,22 +5,22 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: "#0f1221",
-        foreground: "#f0f0f5",
-        muted: { DEFAULT: "#1e2238", foreground: "#8b8fa8" },
-        border: "#252a45",
-        card: { DEFAULT: "#151929", foreground: "#f0f0f5" },
-        primary: { DEFAULT: "#6366f1", foreground: "#ffffff" },
-        accent: "#818cf8",
+        // Pesto Tech palette — enterprise dark + organic green
+        background: "#0F172A",
+        foreground: "#E5E7EB",
+        muted: { DEFAULT: "#1E293B", foreground: "#9CA3AF" },
+        border: "#334155",
+        card: { DEFAULT: "#111827", foreground: "#E5E7EB" },
+        primary: { DEFAULT: "#2F6F5E", foreground: "#ffffff" },
+        accent: "#3A7D6A",
+        link: "#2563EB",
         destructive: "#ef4444",
         success: "#22c55e",
         warning: "#f59e0b",
-        // New CRM palette
-        base: "#1E2238",
-        surface: "#252A45",
-        elevated: "#2E3560",
-        highlight: "#6FE7DD",
-        coral: "#FF8A5B",
+        // Surface hierarchy
+        base: "#1E293B",
+        surface: "#1E293B",
+        elevated: "#374151",
       },
       fontFamily: {
         sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],

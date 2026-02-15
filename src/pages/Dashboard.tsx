@@ -1,32 +1,60 @@
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { GosaiContact, GosaiDeal, GosaiActivity, GosaiTask } from "@/lib/types";
+import { CrmOpportunity, CrmActivity, CrmTask, CrmLead } from "@/lib/types";
 import { Card, CardTitle, CardValue } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { Users, Handshake, DollarSign, TrendingUp, Activity, CheckSquare, Sparkles } from "lucide-react";
+import { UserPlus, Target, DollarSign, TrendingUp, Activity, CheckSquare, Sparkles } from "lucide-react";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend,
+} from "recharts";
+
+// Pesto Tech palette for charts
+const CHART_COLORS = ["#2F6F5E", "#3A7D6A", "#2563EB", "#F59E0B", "#EF4444", "#8B5CF6"];
+const STAGE_COLORS: Record<string, string> = {
+  "Prospecting": "#2563EB",
+  "Qualification": "#3A7D6A",
+  "Proposal/Quote": "#F59E0B",
+  "Negotiation/Review": "#8B5CF6",
+  "Closed Won": "#22C55E",
+  "Closed Lost": "#EF4444",
+};
+
+const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number; name: string }[]; label?: string }) => {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-border bg-card px-3 py-2 shadow-lg text-xs">
+      <p className="text-muted-foreground mb-1">{label}</p>
+      {payload.map((p, i) => (
+        <p key={i} className="text-foreground font-medium">{p.name}: {typeof p.value === "number" && p.name?.includes("$") ? `$${p.value.toLocaleString()}` : p.value}</p>
+      ))}
+    </div>
+  );
+};
 
 export default function Dashboard() {
-  const { data: contacts = [] } = useQuery({
-    queryKey: ["contacts"],
+  const { data: leads = [] } = useQuery({
+    queryKey: ["leads"],
     queryFn: async () => {
-      const { data } = await supabase.from("gosai_contacts").select("*").order("created_at", { ascending: false });
-      return (data ?? []) as GosaiContact[];
+      const { data } = await supabase.from("crm_leads").select("*").order("created_at", { ascending: false });
+      return (data ?? []) as CrmLead[];
     },
   });
 
-  const { data: deals = [] } = useQuery({
-    queryKey: ["deals"],
+  const { data: opportunities = [] } = useQuery({
+    queryKey: ["opportunities"],
     queryFn: async () => {
-      const { data } = await supabase.from("gosai_deals").select("*").order("created_at", { ascending: false });
-      return (data ?? []) as GosaiDeal[];
+      const { data } = await supabase.from("crm_opportunities").select("*").order("created_at", { ascending: false });
+      return (data ?? []) as CrmOpportunity[];
     },
   });
 
   const { data: activities = [] } = useQuery({
     queryKey: ["activities-recent"],
     queryFn: async () => {
-      const { data } = await supabase.from("gosai_activities").select("*").order("created_at", { ascending: false }).limit(10);
-      return (data ?? []) as GosaiActivity[];
+      const { data } = await supabase.from("crm_activities").select("*").order("created_at", { ascending: false }).limit(10);
+      return (data ?? []) as CrmActivity[];
     },
   });
 
@@ -34,29 +62,62 @@ export default function Dashboard() {
     queryKey: ["tasks-upcoming"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("gosai_tasks")
+        .from("crm_tasks")
         .select("*")
         .in("status", ["pending", "in_progress"])
         .order("due_date", { ascending: true })
         .limit(8);
-      return (data ?? []) as GosaiTask[];
+      return (data ?? []) as CrmTask[];
     },
   });
 
-  const openDeals = deals.filter((d) => d.stage !== "Closed Won" && d.stage !== "Closed Lost");
-  const totalPipelineValue = openDeals.reduce((sum, d) => sum + (d.value ?? 0), 0);
-  const wonValue = deals.filter((d) => d.stage === "Closed Won").reduce((sum, d) => sum + (d.value ?? 0), 0);
+  const openOpps = opportunities.filter((o) => o.stage !== "Closed Won" && o.stage !== "Closed Lost");
+  const totalPipelineValue = openOpps.reduce((sum, o) => sum + (o.amount ?? 0), 0);
+  const wonValue = opportunities.filter((o) => o.stage === "Closed Won").reduce((sum, o) => sum + (o.amount ?? 0), 0);
+
+  // Pipeline by stage (bar chart)
+  const pipelineByStage = useMemo(() => {
+    const stages = ["Prospecting", "Qualification", "Proposal/Quote", "Negotiation/Review", "Closed Won", "Closed Lost"];
+    return stages.map((stage) => {
+      const opps = opportunities.filter((o) => o.stage === stage);
+      return { stage, "$ Amount": opps.reduce((s, o) => s + (o.amount ?? 0), 0), count: opps.length };
+    });
+  }, [opportunities]);
+
+  // Opportunities by stage (pie chart)
+  const oppsByStage = useMemo(() => {
+    const counts: Record<string, number> = {};
+    opportunities.forEach((o) => { counts[o.stage] = (counts[o.stage] || 0) + 1; });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [opportunities]);
+
+  // Leads by source (bar chart)
+  const leadsBySource = useMemo(() => {
+    const counts: Record<string, number> = {};
+    leads.forEach((l) => { const src = l.source || "Unknown"; counts[src] = (counts[src] || 0) + 1; });
+    return Object.entries(counts).map(([source, count]) => ({ source, count })).sort((a, b) => b.count - a.count);
+  }, [leads]);
+
+  // Leads by status (pie chart)
+  const leadsByStatus = useMemo(() => {
+    const counts: Record<string, number> = {};
+    leads.forEach((l) => { counts[l.status] = (counts[l.status] || 0) + 1; });
+    return Object.entries(counts).map(([name, value]) => ({ name, value }));
+  }, [leads]);
 
   const statCards = [
-    { title: "Total Contacts", value: contacts.length, format: (v: number) => v.toString(), icon: Users, color: "primary", delay: 0 },
-    { title: "Open Deals", value: openDeals.length, format: (v: number) => v.toString(), icon: Handshake, color: "warning", delay: 1 },
+    { title: "Total Leads", value: leads.length, format: (v: number) => v.toString(), icon: UserPlus, color: "primary", delay: 0 },
+    { title: "Open Opportunities", value: openOpps.length, format: (v: number) => v.toString(), icon: Target, color: "warning", delay: 1 },
     { title: "Pipeline Value", value: totalPipelineValue, format: (v: number) => `$${v.toLocaleString()}`, icon: DollarSign, color: "accent", delay: 2 },
     { title: "Won Revenue", value: wonValue, format: (v: number) => `$${v.toLocaleString()}`, icon: TrendingUp, color: "success", delay: 3 },
   ] as const;
 
+  const hasOpps = opportunities.length > 0;
+  const hasLeads = leads.length > 0;
+
   return (
     <div className="space-y-8">
-      {/* Header with greeting */}
+      {/* Header */}
       <div className="animate-slide-down">
         <div className="flex items-center gap-2 mb-1">
           <Sparkles size={20} className="text-primary animate-float" />
@@ -65,15 +126,12 @@ export default function Dashboard() {
         <p className="text-sm text-muted-foreground">Pipeline overview and recent activity</p>
       </div>
 
-      {/* Stat cards with staggered entrance */}
+      {/* Stat cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
-            <div
-              key={stat.title}
-              className={`metric-card rounded-xl p-5 group animate-slide-up delay-${stat.delay}`}
-            >
+            <div key={stat.title} className={`metric-card rounded-xl p-5 group animate-slide-up delay-${stat.delay}`}>
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle>{stat.title}</CardTitle>
@@ -85,12 +143,85 @@ export default function Dashboard() {
                   <Icon size={20} className={`text-${stat.color}`} />
                 </div>
               </div>
-              {/* Subtle gradient accent line */}
               <div className={`mt-4 h-0.5 rounded-full bg-gradient-to-r from-${stat.color}/30 via-${stat.color}/10 to-transparent`} />
             </div>
           );
         })}
       </div>
+
+      {/* Pipeline Charts */}
+      {hasOpps && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="animate-slide-up delay-4">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Pipeline by Stage</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart data={pipelineByStage} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <XAxis dataKey="stage" tick={{ fill: "#9CA3AF", fontSize: 10 }} axisLine={false} tickLine={false}
+                  tickFormatter={(v: string) => v.length > 12 ? v.slice(0, 10) + "..." : v} />
+                <YAxis tick={{ fill: "#9CA3AF", fontSize: 10 }} axisLine={false} tickLine={false}
+                  tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(47,111,94,0.08)" }} />
+                <Bar dataKey="$ Amount" radius={[6, 6, 0, 0]}>
+                  {pipelineByStage.map((entry) => (
+                    <Cell key={entry.stage} fill={STAGE_COLORS[entry.stage] || "#2F6F5E"} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+
+          <Card className="animate-slide-up delay-5">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Opportunities by Stage</h3>
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie data={oppsByStage} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={3}
+                  dataKey="value" nameKey="name" stroke="none">
+                  {oppsByStage.map((entry, i) => (
+                    <Cell key={entry.name} fill={STAGE_COLORS[entry.name] || CHART_COLORS[i % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend iconType="circle" iconSize={8}
+                  formatter={(value: string) => <span className="text-xs text-muted-foreground">{value}</span>} />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </div>
+      )}
+
+      {/* Lead Charts */}
+      {hasLeads && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="animate-slide-up delay-6">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Leads by Source</h3>
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={leadsBySource} layout="vertical" margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                <XAxis type="number" tick={{ fill: "#9CA3AF", fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="source" tick={{ fill: "#9CA3AF", fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(47,111,94,0.08)" }} />
+                <Bar dataKey="count" name="Leads" fill="#2F6F5E" radius={[0, 6, 6, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </Card>
+
+          <Card className="animate-slide-up delay-7">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-4">Leads by Status</h3>
+            <ResponsiveContainer width="100%" height={240}>
+              <PieChart>
+                <Pie data={leadsByStatus} cx="50%" cy="50%" innerRadius={50} outerRadius={85} paddingAngle={3}
+                  dataKey="value" nameKey="name" stroke="none">
+                  {leadsByStatus.map((_, i) => (
+                    <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CustomTooltip />} />
+                <Legend iconType="circle" iconSize={8}
+                  formatter={(value: string) => <span className="text-xs text-muted-foreground">{value}</span>} />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </div>
+      )}
 
       {/* Activity + Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { GosaiNote, EntityType } from "@/lib/types";
+import { CrmNote, EntityType } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { MessageSquare, Trash2, Send, Pin } from "lucide-react";
@@ -22,19 +22,19 @@ export function NotesSection({ linkedType, linkedId }: NotesSectionProps) {
     queryKey: ["notes", linkedType, linkedId],
     queryFn: async () => {
       const { data } = await supabase
-        .from("gosai_notes")
+        .from("crm_notes")
         .select("*")
         .eq("linked_type", linkedType)
         .eq("linked_id", linkedId)
         .order("pinned", { ascending: false })
         .order("created_at", { ascending: false });
-      return (data ?? []) as GosaiNote[];
+      return (data ?? []) as CrmNote[];
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("gosai_notes").insert({
+      const { error } = await supabase.from("crm_notes").insert({
         user_id: USER_ID,
         content: newNote.trim(),
         linked_type: linkedType,
@@ -53,7 +53,7 @@ export function NotesSection({ linkedType, linkedId }: NotesSectionProps) {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("gosai_notes").delete().eq("id", id);
+      const { error } = await supabase.from("crm_notes").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {

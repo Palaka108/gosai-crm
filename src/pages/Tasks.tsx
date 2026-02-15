@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { GosaiTask, TaskPriority, TaskStatus } from "@/lib/types";
+import { CrmTask, TaskPriority, TaskStatus } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -24,17 +24,17 @@ export default function Tasks() {
   const { data: tasks = [], isLoading } = useQuery({
     queryKey: ["tasks", filterStatus],
     queryFn: async () => {
-      let q = supabase.from("gosai_tasks").select("*").order("due_date", { ascending: true, nullsFirst: false });
+      let q = supabase.from("crm_tasks").select("*").order("due_date", { ascending: true, nullsFirst: false });
       if (filterStatus === "active") q = q.in("status", ["pending", "in_progress"]);
       else if (filterStatus !== "all") q = q.eq("status", filterStatus);
       const { data } = await q;
-      return (data ?? []) as GosaiTask[];
+      return (data ?? []) as CrmTask[];
     },
   });
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("gosai_tasks").insert({
+      const { error } = await supabase.from("crm_tasks").insert({
         user_id: USER_ID,
         title: newTitle,
         priority: "medium",
@@ -52,7 +52,7 @@ export default function Tasks() {
 
   const completeMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("gosai_tasks").update({ status: "completed", completed_at: new Date().toISOString() }).eq("id", id);
+      const { error } = await supabase.from("crm_tasks").update({ status: "completed", completed_at: new Date().toISOString() }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["tasks"] }); toast.success("Task completed"); },
@@ -61,7 +61,7 @@ export default function Tasks() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("gosai_tasks").delete().eq("id", id);
+      const { error } = await supabase.from("crm_tasks").delete().eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["tasks"] }); toast.success("Task deleted"); },
