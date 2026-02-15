@@ -39,7 +39,7 @@ export default function Login() {
       <div
         className="absolute inset-0 opacity-30"
         style={{
-          background: "radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(129, 140, 248, 0.1) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 70%)",
+          background: "radial-gradient(ellipse at 30% 20%, rgba(99, 102, 241, 0.12) 0%, transparent 50%), radial-gradient(ellipse at 70% 80%, rgba(111, 231, 221, 0.07) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(99, 102, 241, 0.04) 0%, transparent 70%)",
           animation: "gradient-shift 8s ease-in-out infinite",
           backgroundSize: "200% 200%",
         }}

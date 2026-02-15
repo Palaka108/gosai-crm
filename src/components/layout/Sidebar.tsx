@@ -22,16 +22,16 @@ export function Sidebar() {
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
   return (
-    <aside className="fixed left-0 top-0 h-screen w-60 border-r border-border bg-card flex flex-col z-40">
+    <aside className="fixed left-0 top-0 h-screen w-60 border-r border-border/80 bg-card/95 backdrop-blur-sm flex flex-col z-40">
       {/* Logo */}
-      <div className="p-5 border-b border-border">
+      <div className="p-5 border-b border-border/60">
         <Link to="/" className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-sm shadow-primary/20">
             <Zap size={16} className="text-white" />
           </div>
           <div>
             <span className="text-base font-semibold tracking-tight">GOSAI</span>
-            <span className="text-xs text-muted-foreground ml-1.5">CRM</span>
+            <span className="text-xs text-primary ml-1.5">CRM</span>
           </div>
         </Link>
       </div>
@@ -43,21 +43,21 @@ export function Sidebar() {
             to={item.href}
             className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
               isActive(item.href)
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                ? "bg-primary/10 text-primary border border-primary/10 shadow-sm shadow-primary/5"
+                : "text-muted-foreground hover:text-foreground hover:bg-surface/60"
             }`}
           >
             <item.icon size={18} />
             {item.label}
           </Link>
         ))}
-        <div className="my-2 border-t border-border" />
+        <div className="my-2 border-t border-border/50" />
         <Link
           to="/settings"
           className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
             isActive("/settings")
-              ? "bg-primary/10 text-primary"
-              : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              ? "bg-primary/10 text-primary border border-primary/10 shadow-sm shadow-primary/5"
+              : "text-muted-foreground hover:text-foreground hover:bg-surface/60"
           }`}
         >
           <Settings size={18} />
@@ -66,9 +66,9 @@ export function Sidebar() {
       </nav>
 
       {/* User + Sign Out */}
-      <div className="p-3 border-t border-border">
+      <div className="p-3 border-t border-border/50">
         <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
-          <div className="w-7 h-7 rounded-full bg-primary/20 flex items-center justify-center text-xs font-medium text-primary shrink-0">
+          <div className="w-7 h-7 rounded-full bg-primary/15 flex items-center justify-center text-xs font-medium text-primary shrink-0">
             {user?.email?.charAt(0).toUpperCase() ?? "?"}
           </div>
           <span className="text-xs text-muted-foreground truncate">
@@ -77,7 +77,7 @@ export function Sidebar() {
         </div>
         <button
           onClick={signOut}
-          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all cursor-pointer"
+          className="flex items-center gap-3 w-full px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-surface/60 transition-all cursor-pointer"
         >
           <LogOut size={18} />
           Sign Out

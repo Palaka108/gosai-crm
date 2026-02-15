@@ -1,15 +1,38 @@
+import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
-import { GosaiContact, GosaiNote, GosaiActivity } from "@/lib/types";
+import { GosaiContact, GosaiCompany, GosaiActivity, ContactStatus } from "@/lib/types";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { NotesSection } from "@/components/shared/NotesSection";
-import { ArrowLeft, Mail, Phone, Building2, User } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
+import { Modal } from "@/components/ui/Modal";
+import { NotesSection } from "@/components/shared/NotesSection";
+import { ArrowLeft, Mail, Phone, Building2, User, Pencil } from "lucide-react";
+
+const USER_ID = "47f2407b-67b9-4aa1-9a58-50bc0d461059";
+
+const STATUS_BADGE: Record<ContactStatus, "info" | "warning" | "success" | "default" | "destructive"> = {
+  lead: "info", prospect: "warning", client: "success", inactive: "default", churned: "destructive",
+};
 
 export default function ContactDetail() {
   const { id } = useParams<{ id: string }>();
+  const queryClient = useQueryClient();
+  const [showEdit, setShowEdit] = useState(false);
+  const [form, setForm] = useState({
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+    title: "",
+    source: "",
+    status: "lead" as ContactStatus,
+    company_id: "",
+  });
 
   const { data: contact, isLoading } = useQuery({
     queryKey: ["contact", id],
@@ -29,6 +52,71 @@ export default function ContactDetail() {
     enabled: !!id,
   });
 
+  const { data: companies = [] } = useQuery({
+    queryKey: ["companies-list"],
+    queryFn: async () => {
+      const { data } = await supabase.from("gosai_companies").select("id, name").order("name");
+      return (data ?? []) as GosaiCompany[];
+    },
+  });
+
+  const openEditModal = () => {
+    if (!contact) return;
+    setForm({
+      first_name: contact.first_name,
+      last_name: contact.last_name ?? "",
+      email: contact.email ?? "",
+      phone: contact.phone ?? "",
+      title: contact.title ?? "",
+      source: contact.source ?? "",
+      status: contact.status,
+      company_id: contact.company_id ?? "",
+    });
+    setShowEdit(true);
+  };
+
+  const updateMutation = useMutation({
+    mutationFn: async () => {
+      const updates = {
+        first_name: form.first_name,
+        last_name: form.last_name || null,
+        email: form.email || null,
+        phone: form.phone || null,
+        title: form.title || null,
+        source: form.source || null,
+        status: form.status,
+        company_id: form.company_id || null,
+        updated_at: new Date().toISOString(),
+      };
+      const { error } = await supabase.from("gosai_contacts").update(updates).eq("id", id!);
+      if (error) throw error;
+
+      const changes: string[] = [];
+      if (contact?.first_name !== form.first_name || contact?.last_name !== (form.last_name || null)) changes.push(`name to ${form.first_name} ${form.last_name}`);
+      if (contact?.email !== (form.email || null)) changes.push(`email to ${form.email}`);
+      if (contact?.status !== form.status) changes.push(`status from ${contact?.status} to ${form.status}`);
+
+      if (changes.length > 0) {
+        await supabase.from("gosai_activities").insert({
+          user_id: USER_ID,
+          type: "updated",
+          description: `Updated contact: ${changes.join(", ")}`,
+          linked_type: "contact",
+          linked_id: id!,
+          metadata: { changes },
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contact", id] });
+      queryClient.invalidateQueries({ queryKey: ["contact-activities", id] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      setShowEdit(false);
+      toast.success("Contact updated");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   if (isLoading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
   if (!contact) return <div className="text-center py-16 text-muted-foreground">Contact not found</div>;
 
@@ -38,17 +126,22 @@ export default function ContactDetail() {
         <ArrowLeft size={16} />Back to Contacts
       </Link>
 
-      <div className="flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-xl font-medium text-primary">
-          {contact.first_name.charAt(0)}{contact.last_name?.charAt(0) || ""}
-        </div>
-        <div>
-          <h1 className="text-2xl font-semibold">{contact.first_name} {contact.last_name}</h1>
-          <div className="flex items-center gap-3 mt-1">
-            {contact.title && <span className="text-sm text-muted-foreground">{contact.title}</span>}
-            <Badge variant={contact.status === "client" ? "success" : contact.status === "prospect" ? "warning" : "info"}>{contact.status}</Badge>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center text-xl font-medium text-primary">
+            {contact.first_name.charAt(0)}{contact.last_name?.charAt(0) || ""}
+          </div>
+          <div>
+            <h1 className="text-2xl font-semibold">{contact.first_name} {contact.last_name}</h1>
+            <div className="flex items-center gap-3 mt-1">
+              {contact.title && <span className="text-sm text-muted-foreground">{contact.title}</span>}
+              <Badge variant={STATUS_BADGE[contact.status]}>{contact.status}</Badge>
+            </div>
           </div>
         </div>
+        <Button variant="secondary" size="sm" onClick={openEditModal}>
+          <Pencil size={14} />Edit
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -89,6 +182,28 @@ export default function ContactDetail() {
           </Card>
         </div>
       </div>
+
+      <Modal open={showEdit} onClose={() => setShowEdit(false)} title="Edit Contact">
+        <form onSubmit={(e) => { e.preventDefault(); updateMutation.mutate(); }} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <Input label="First Name" required value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} />
+            <Input label="Last Name" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} />
+          </div>
+          <Input label="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <Input label="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+          <Input label="Job Title" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
+          <Select label="Company" value={form.company_id} onChange={(e) => setForm({ ...form, company_id: e.target.value })}
+            options={[{ value: "", label: "No company" }, ...companies.map((c) => ({ value: c.id, label: c.name }))]} />
+          <Select label="Source" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}
+            options={[{ value: "", label: "Select source" }, { value: "referral", label: "Referral" }, { value: "website", label: "Website" }, { value: "cold", label: "Cold Outreach" }, { value: "event", label: "Event" }, { value: "linkedin", label: "LinkedIn" }]} />
+          <Select label="Status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as ContactStatus })}
+            options={[{ value: "lead", label: "Lead" }, { value: "prospect", label: "Prospect" }, { value: "client", label: "Client" }, { value: "inactive", label: "Inactive" }, { value: "churned", label: "Churned" }]} />
+          <div className="flex justify-end gap-3 pt-2">
+            <Button type="button" variant="secondary" onClick={() => setShowEdit(false)}>Cancel</Button>
+            <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? "Saving..." : "Save Changes"}</Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

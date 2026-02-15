@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 body {
-  background: #09090b;
-  color: #fafafa;
+  background: #0f1221;
+  color: #f0f0f5;
   font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -12,8 +12,8 @@ body {
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #27272a; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+::-webkit-scrollbar-thumb { background: #252a45; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #2E3560; }
 
 /* ── Entrance Animations ── */
 @keyframes fade-in {
@@ -137,15 +137,46 @@ body {
 
 /* ── Glass Morphism ── */
 .glass {
-  background: rgba(12, 12, 15, 0.7);
+  background: rgba(21, 25, 41, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
 }
 
 .glass-subtle {
-  background: rgba(12, 12, 15, 0.5);
+  background: rgba(21, 25, 41, 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+}
+
+/* ── Glass Panel (frosted elevated card) ── */
+.glass-panel {
+  background: rgba(30, 34, 56, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(99, 102, 241, 0.1);
+}
+
+/* ── Soft Glow Border ── */
+.soft-glow-border {
+  border: 1px solid rgba(99, 102, 241, 0.15);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.05), inset 0 0 20px rgba(99, 102, 241, 0.02);
+}
+
+/* ── AI Accent ── */
+.ai-accent {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(111, 231, 221, 0.08));
+  border: 1px solid rgba(99, 102, 241, 0.12);
+}
+
+/* ── Metric Card ── */
+.metric-card {
+  background: rgba(21, 25, 41, 0.8);
+  border: 1px solid rgba(37, 42, 69, 0.8);
+  transition: all 0.3s ease;
+}
+.metric-card:hover {
+  border-color: rgba(99, 102, 241, 0.25);
+  box-shadow: 0 4px 24px rgba(99, 102, 241, 0.08);
 }
 
 /* ── Gradient borders ── */
@@ -158,7 +189,7 @@ body {
   inset: 0;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(129, 140, 248, 0.1), transparent 60%);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.25), rgba(111, 231, 221, 0.1), transparent 60%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
@@ -191,8 +222,41 @@ body {
 
 /* ── Dot grid background ── */
 .dot-grid {
-  background-image: radial-gradient(circle, rgba(99, 102, 241, 0.08) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(99, 102, 241, 0.06) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+/* ── Intro-specific animations ── */
+@keyframes intro-gradient {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.1); opacity: 0.2; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+@keyframes drift {
+  0%, 100% { transform: translate(0, 0); }
+  25% { transform: translate(10px, -15px); }
+  50% { transform: translate(-5px, 10px); }
+  75% { transform: translate(15px, 5px); }
+}
+
+.animate-intro-gradient {
+  animation: intro-gradient 15s ease-in-out infinite;
+  background-size: 400% 400%;
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 4s ease-in-out infinite;
+}
+
+.animate-drift {
+  animation: drift 20s ease-in-out infinite;
 }
 
 /* ── Table row hover glow ── */

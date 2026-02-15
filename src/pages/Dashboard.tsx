@@ -70,7 +70,10 @@ export default function Dashboard() {
         {statCards.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title} className={`animate-slide-up delay-${stat.delay} group`}>
+            <div
+              key={stat.title}
+              className={`metric-card rounded-xl p-5 group animate-slide-up delay-${stat.delay}`}
+            >
               <div className="flex items-start justify-between">
                 <div>
                   <CardTitle>{stat.title}</CardTitle>
@@ -83,15 +86,15 @@ export default function Dashboard() {
                 </div>
               </div>
               {/* Subtle gradient accent line */}
-              <div className={`mt-4 h-0.5 rounded-full bg-gradient-to-r from-${stat.color}/40 via-${stat.color}/10 to-transparent`} />
-            </Card>
+              <div className={`mt-4 h-0.5 rounded-full bg-gradient-to-r from-${stat.color}/30 via-${stat.color}/10 to-transparent`} />
+            </div>
           );
         })}
       </div>
 
       {/* Activity + Tasks */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="animate-slide-up delay-4">
+        <Card className="animate-slide-up delay-4 soft-glow-border">
           <div className="flex items-center gap-2 mb-5">
             <div className="p-1.5 rounded-lg bg-primary/10">
               <Activity size={14} className="text-primary" />
@@ -100,7 +103,7 @@ export default function Dashboard() {
           </div>
           <div className="space-y-1">
             {activities.map((item, i) => (
-              <div key={item.id} className={`flex gap-3 py-2.5 px-2 rounded-lg hover:bg-muted/20 transition-all duration-200 animate-slide-in-right delay-${Math.min(i, 10)}`}>
+              <div key={item.id} className={`flex gap-3 py-2.5 px-2 rounded-lg hover:bg-surface/40 transition-all duration-200 animate-slide-in-right delay-${Math.min(i, 10)}`}>
                 <div className="w-1 h-1 rounded-full bg-primary/40 mt-2 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm truncate">{item.description || item.type}</p>
@@ -120,7 +123,7 @@ export default function Dashboard() {
           </div>
         </Card>
 
-        <Card className="animate-slide-up delay-5">
+        <Card className="animate-slide-up delay-5 soft-glow-border">
           <div className="flex items-center gap-2 mb-5">
             <div className="p-1.5 rounded-lg bg-accent/10">
               <CheckSquare size={14} className="text-accent" />
@@ -129,7 +132,7 @@ export default function Dashboard() {
           </div>
           <div className="space-y-1">
             {tasks.map((task, i) => (
-              <div key={task.id} className={`flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-muted/20 transition-all duration-200 animate-slide-in-right delay-${Math.min(i, 10)}`}>
+              <div key={task.id} className={`flex items-center gap-3 py-2.5 px-2 rounded-lg hover:bg-surface/40 transition-all duration-200 animate-slide-in-right delay-${Math.min(i, 10)}`}>
                 <div className={`w-2 h-2 rounded-full shrink-0 ${
                   task.priority === "urgent" ? "bg-destructive shadow-sm shadow-destructive/50" :
                   task.priority === "high" ? "bg-warning shadow-sm shadow-warning/50" :
