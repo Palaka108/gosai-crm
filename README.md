@@ -24,6 +24,11 @@ Open [http://localhost:8080](http://localhost:8080)
 
 All data lives in `gosai_*` tables on project `qwlbbcrjdpuxkavwyjyg`. No migrations needed — tables already exist with RLS enabled.
 
+## Known Limitations (MVP)
+
+- **No per-user data isolation:** All authenticated users see all records (contacts, companies, deals, projects, tasks). This is intentional for the MVP shared-workspace use case. Before sharing with users outside the core team, queries must be scoped by `user_id` (or an `org_id` / team concept) and RLS policies must enforce row-level separation.
+- **Hardcoded `user_id`:** Record creation uses a single hardcoded user ID rather than the authenticated user's ID. Must be updated alongside data isolation.
+
 ## Pages
 
 - **Dashboard** — Metrics, recent activity, upcoming tasks
