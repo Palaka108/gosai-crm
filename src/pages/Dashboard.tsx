@@ -4,7 +4,8 @@ import { supabase } from "@/lib/supabase";
 import { CrmOpportunity, CrmActivity, CrmTask, CrmLead } from "@/lib/types";
 import { Card, CardTitle, CardValue } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { UserPlus, Target, DollarSign, TrendingUp, Activity, CheckSquare, Sparkles } from "lucide-react";
+import { Link } from "react-router-dom";
+import { UserPlus, Briefcase, DollarSign, TrendingUp, Activity, CheckSquare, Sparkles } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -107,7 +108,7 @@ export default function Dashboard() {
 
   const statCards = [
     { title: "Total Leads", value: leads.length, format: (v: number) => v.toString(), icon: UserPlus, color: "primary", delay: 0 },
-    { title: "Open Opportunities", value: openOpps.length, format: (v: number) => v.toString(), icon: Target, color: "warning", delay: 1 },
+    { title: "Open Opportunities", value: openOpps.length, format: (v: number) => v.toString(), icon: Briefcase, color: "warning", delay: 1 },
     { title: "Pipeline Value", value: totalPipelineValue, format: (v: number) => `$${v.toLocaleString()}`, icon: DollarSign, color: "accent", delay: 2 },
     { title: "Won Revenue", value: wonValue, format: (v: number) => `$${v.toLocaleString()}`, icon: TrendingUp, color: "success", delay: 3 },
   ] as const;
@@ -233,18 +234,28 @@ export default function Dashboard() {
             <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Recent Activity</h3>
           </div>
           <div className="space-y-1">
-            {activities.map((item, i) => (
-              <div key={item.id} className={`flex gap-3 py-2.5 px-2 rounded-lg hover:bg-surface/40 transition-all duration-200 animate-slide-in-right delay-${Math.min(i, 10)}`}>
-                <div className="w-1 h-1 rounded-full bg-primary/40 mt-2 shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm truncate">{item.description || item.type}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
-                  </p>
-                </div>
-                <Badge variant="default" className="self-start text-[10px]">{item.linked_type}</Badge>
-              </div>
-            ))}
+            {activities.map((item, i) => {
+              const entityPath = item.linked_type === "lead" ? "/leads" : item.linked_type === "account" ? "/accounts" : item.linked_type === "contact" ? "/contacts" : item.linked_type === "opportunity" ? "/opportunities" : null;
+              const href = entityPath ? `${entityPath}/${item.linked_id}` : null;
+              const baseClass = `flex gap-3 py-2.5 px-2 rounded-lg hover:bg-surface/40 transition-all duration-200 animate-slide-in-right delay-${Math.min(i, 10)}`;
+              const content = (
+                <>
+                  <div className="w-1 h-1 rounded-full bg-primary/40 mt-2 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm truncate">{item.description || item.type}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {new Date(item.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}
+                    </p>
+                  </div>
+                  <Badge variant="default" className="self-start text-[10px]">{item.linked_type}</Badge>
+                </>
+              );
+              return href ? (
+                <Link key={item.id} to={href} className={`${baseClass} cursor-pointer`}>{content}</Link>
+              ) : (
+                <div key={item.id} className={baseClass}>{content}</div>
+              );
+            })}
             {activities.length === 0 && (
               <div className="text-center py-8">
                 <Activity size={32} className="text-muted-foreground/20 mx-auto mb-2 animate-float" />
