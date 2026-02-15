@@ -69,7 +69,7 @@ export default function Projects() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between animate-slide-down">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Projects</h1>
           <p className="text-sm text-muted-foreground mt-1">{projects.length} project{projects.length !== 1 ? "s" : ""}</p>
@@ -92,7 +92,7 @@ export default function Projects() {
             </tr></thead>
             <tbody>
               {projects.map((p) => (
-                <tr key={p.id} className="border-b border-border/50 row-glow transition-all duration-200">
+                <tr key={p.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3">
                     <p className="text-sm font-medium">{p.name}</p>
                     {p.description && <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-xs">{p.description}</p>}

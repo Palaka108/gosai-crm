@@ -132,7 +132,7 @@ export default function Deals() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between animate-slide-down">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Deals</h1>
           <p className="text-sm text-muted-foreground mt-1">{deals.length} deal{deals.length !== 1 ? "s" : ""} — ${totalValue.toLocaleString()} total</p>
@@ -166,7 +166,7 @@ export default function Deals() {
             </thead>
             <tbody>
               {deals.map((deal) => (
-                <tr key={deal.id} className="border-b border-border/50 row-glow transition-all duration-200">
+                <tr key={deal.id} className="border-b border-border/50 hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3">
                     <Link to={`/deals/${deal.id}`} className="text-sm font-medium hover:text-primary transition-colors">{deal.title}</Link>
                     {deal.gosai_companies && <p className="text-xs text-muted-foreground mt-0.5">{deal.gosai_companies.name}</p>}

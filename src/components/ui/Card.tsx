@@ -2,11 +2,7 @@ import { HTMLAttributes, forwardRef } from "react";
 
 export const Card = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className = "", ...props }, ref) => (
-    <div
-      ref={ref}
-      className={`rounded-xl border border-border bg-card p-5 shadow-sm gradient-border hover-lift transition-all duration-200 ${className}`}
-      {...props}
-    />
+    <div ref={ref} className={`rounded-xl border border-border bg-card p-5 shadow-sm ${className}`} {...props} />
   )
 );
 Card.displayName = "Card";
@@ -20,7 +16,7 @@ CardTitle.displayName = "CardTitle";
 
 export const CardValue = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
   ({ className = "", ...props }, ref) => (
-    <div ref={ref} className={`text-3xl font-semibold tracking-tight animate-count-up ${className}`} {...props} />
+    <div ref={ref} className={`text-3xl font-semibold tracking-tight ${className}`} {...props} />
   )
 );
 CardValue.displayName = "CardValue";
