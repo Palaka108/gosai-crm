@@ -130,7 +130,20 @@ export default function ContactDetail() {
   });
 
   if (isLoading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
-  if (!contact) return <div className="text-center py-16 text-muted-foreground">Contact not found</div>;
+  if (!contact) return (
+    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+      <div className="p-4 rounded-full bg-muted/30">
+        <User size={40} className="text-muted-foreground/40" />
+      </div>
+      <div className="text-center">
+        <h2 className="text-lg font-semibold text-foreground">Contact not found</h2>
+        <p className="text-sm text-muted-foreground mt-1">This contact may have been deleted or the link is invalid.</p>
+      </div>
+      <Link to="/contacts" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+        <ArrowLeft size={16} />Back to Contacts
+      </Link>
+    </div>
+  );
 
   return (
     <div className="space-y-6">

@@ -186,7 +186,20 @@ export default function OpportunityDetail() {
   });
 
   if (isLoading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
-  if (!opportunity) return <div className="text-center py-16 text-muted-foreground">Opportunity not found</div>;
+  if (!opportunity) return (
+    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+      <div className="p-4 rounded-full bg-muted/30">
+        <DollarSign size={40} className="text-muted-foreground/40" />
+      </div>
+      <div className="text-center">
+        <h2 className="text-lg font-semibold text-foreground">Opportunity not found</h2>
+        <p className="text-sm text-muted-foreground mt-1">This opportunity may have been deleted or the link is invalid.</p>
+      </div>
+      <Link to="/opportunities" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+        <ArrowLeft size={16} />Back to Opportunities
+      </Link>
+    </div>
+  );
 
   return (
     <div className="space-y-6">

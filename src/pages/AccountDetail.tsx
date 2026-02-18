@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Modal } from "@/components/ui/Modal";
 import { NotesSection } from "@/components/shared/NotesSection";
-import { ArrowLeft, Globe, Phone, Mail, Pencil, DollarSign, MapPin } from "lucide-react";
+import { ArrowLeft, Globe, Phone, Mail, Pencil, DollarSign, MapPin, Building2 } from "lucide-react";
 
 const USER_ID = "47f2407b-67b9-4aa1-9a58-50bc0d461059";
 
@@ -126,7 +126,20 @@ export default function AccountDetail() {
   });
 
   if (isLoading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
-  if (!account) return <div className="text-center py-16 text-muted-foreground">Account not found</div>;
+  if (!account) return (
+    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+      <div className="p-4 rounded-full bg-muted/30">
+        <Building2 size={40} className="text-muted-foreground/40" />
+      </div>
+      <div className="text-center">
+        <h2 className="text-lg font-semibold text-foreground">Account not found</h2>
+        <p className="text-sm text-muted-foreground mt-1">This account may have been deleted or the link is invalid.</p>
+      </div>
+      <Link to="/accounts" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+        <ArrowLeft size={16} />Back to Accounts
+      </Link>
+    </div>
+  );
 
   return (
     <div className="space-y-6">

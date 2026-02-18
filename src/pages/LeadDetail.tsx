@@ -180,7 +180,20 @@ export default function LeadDetail() {
   });
 
   if (isLoading) return <div className="flex items-center justify-center h-64"><div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
-  if (!lead) return <div className="text-center py-16 text-muted-foreground">Lead not found</div>;
+  if (!lead) return (
+    <div className="flex flex-col items-center justify-center py-20 space-y-4">
+      <div className="p-4 rounded-full bg-muted/30">
+        <Briefcase size={40} className="text-muted-foreground/40" />
+      </div>
+      <div className="text-center">
+        <h2 className="text-lg font-semibold text-foreground">Lead not found</h2>
+        <p className="text-sm text-muted-foreground mt-1">This lead may have been deleted or the link is invalid.</p>
+      </div>
+      <Link to="/leads" className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors">
+        <ArrowLeft size={16} />Back to Leads
+      </Link>
+    </div>
+  );
 
   const isConverted = !!lead.converted_at;
 
