@@ -16,6 +16,7 @@ import Activities from "@/pages/Activities";
 import ApolloImport from "@/pages/ApolloImport";
 import Tasks from "@/pages/Tasks";
 import Settings from "@/pages/Settings";
+import OutreachQueue from "@/pages/OutreachQueue";
 
 function LoadingScreen() {
   return (
@@ -60,6 +61,7 @@ export default function App() {
         <Route path="/activities" element={<Activities />} />
         <Route path="/import" element={<ApolloImport />} />
         <Route path="/tasks" element={<Tasks />} />
+        <Route path="/outreach" element={<OutreachQueue />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

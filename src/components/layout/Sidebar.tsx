@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, UserPlus, Building2, Users, Target,
-  Activity, Upload, Settings, Zap, LogOut,
+  Activity, Upload, Settings, Zap, LogOut, Send,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 
@@ -12,6 +12,7 @@ const navItems = [
   { href: "/contacts", label: "Contacts", icon: Users },
   { href: "/opportunities", label: "Opportunities", icon: Target },
   { href: "/activities", label: "Activities", icon: Activity },
+  { href: "/outreach", label: "Outreach Queue", icon: Send },
   { href: "/import", label: "Apollo Import", icon: Upload },
 ];
 
